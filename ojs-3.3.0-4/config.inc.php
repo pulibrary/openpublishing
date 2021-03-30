@@ -29,7 +29,7 @@
 installed = On
 
 ; The canonical URL to the OJS installation (excluding the trailing slash)
-base_url = "http://localhost:60892"
+base_url = "http://localhost:51874"
 
 ; Session cookie name
 session_cookie_name = OJSSID
@@ -131,7 +131,7 @@ password =
 name = lamp
 
 ; Set the non-standard port and/or socket, if used
-; port = 5432
+; port = 3306
 ; unix_socket = /var/run/mysqld/mysqld.sock
 
 ; Database collation
@@ -415,7 +415,7 @@ results_per_keyword = 500
 oai = On
 
 ; OAI Repository identifier
-repository_id = "ojs2.localhost:60892"
+repository_id = "openpublishing.princeton.edu"
 
 ; Maximum number of records per request to serve via OAI
 oai_max_records = 100
