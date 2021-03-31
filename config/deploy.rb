@@ -4,8 +4,7 @@ lock "~> 3.16.0"
 set :application, "openpublishing"
 set :repo_url, "git@github.com:kelynch/openpublishing.git"
 
-# Default branch is :master
-# ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
+set :branch, ENV['BRANCH'] if ENV['BRANCH']
 
 # Default deploy_to directory is /var/www/my_app_name
 set :deploy_to, "/var/www/openpublishing"
@@ -60,17 +59,17 @@ end
 
 namespace :setup do
   desc "Set file system directories and linked files"
-  task :deployment do
+  task :filesystem do
     invoke "ojs:prepare_shared_paths"
     invoke "ojs:download_ojs"
   end
 end
 
-namespace :update do
+namespace :deploy do
   desc "Update themes from pulibrary/openpublishing"
   task :themes do
-    invoke "deploy"
     on roles (:app) do
+      invoke "deploy"
       execute :cp, '-a', "#{fetch(:deploy_to)}/current/plugins/themes/.", "#{fetch(:ojs_root)}/#{fetch(:ojs_version)}/plugins/themes/"
     end
   end
