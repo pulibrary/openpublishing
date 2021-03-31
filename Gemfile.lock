@@ -10,6 +10,8 @@ GEM
       sshkit (>= 1.9.0)
     capistrano-composer (0.0.6)
       capistrano (>= 3.0.0.pre)
+    capistrano-locally (0.2.7)
+      capistrano (~> 3.0)
     concurrent-ruby (1.1.8)
     i18n (1.8.10)
       concurrent-ruby (~> 1.0)
@@ -27,6 +29,7 @@ PLATFORMS
 DEPENDENCIES
   capistrano (~> 3.11)
   capistrano-composer
+  capistrano-locally
 
 BUNDLED WITH
    2.2.4
