@@ -1,2 +1,0 @@
-# Statistiques
-Consultez les statistiques pour les articles publiés dans votre revue, en utilisant des filtres par rubrique et période temporelle. Pour des statistiques personnalisées ou plus détaillées, consultez le Générateur de rapports, dans la section Outils.

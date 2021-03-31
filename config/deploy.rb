@@ -15,8 +15,32 @@ set :user, "deploy"
 
 namespace :ojs do
 
-  set :ojs_root, "#{fetch(:deploy_to)}/ojs"
+  set :ojs_version_no, "3.3.0-4" #TODO make this a variable
+  set :ojs_version, "ojs-#{fetch(:ojs_version_no)}"
+  set :ojs_tar_file, "#{fetch(:ojs_version)}.tar"
+  set :download_url, "http://pkp.sfu.ca/ojs/download/#{fetch(:ojs_tar_file)}.gz"
+
+  set :ojs_root, "#{fetch(:deploy_to)}/html"
   set :ojs_file_uploads, File.join(fetch(:shared_path), 'files')
+
+  desc "Download and unzip OJS version"
+  task :setup do
+    on roles :app do
+      unless test("[ -d #{File.join(fetch(:ojs_root))} ]")
+        execute :mkdir, fetch(:ojs_root)
+      end
+
+      within fetch(:deploy_to) do
+        execute :wget, fetch(:download_url)
+        execute :gunzip, "#{fetch(:ojs_tar_file)}.gz"
+        execute :tar, "-xvf #{fetch(:ojs_tar_file)}"
+        set :expanded_tar_dir, "#{fetch(:deploy_to)}/#{fetch(:ojs_version)}"
+        execute :mv, "#{fetch(:expanded_tar_dir)} #{fetch(:ojs_root)}"
+        execute :rm, "#{fetch(:ojs_tar_file)}"
+      end
+
+    end
+  end
 
   desc "Create shared files directory"
   task :prepare_shared_paths do
@@ -34,7 +58,7 @@ namespace :ojs do
   desc "Link shared OJS files"
   task :link_config do
     on roles(:app) do |host|
-      execute "cd #{release_path}/ojs && ln -sf #{fetch(:shared_path)}/config.inc.php config.inc.php"
+      execute "cd #{fetch(:ojs_root)}/#{fetch(:ojs_version)} && ln -sf #{fetch(:shared_path)}/config.inc.php config.inc.php"
       info "linked config inc PHP file to current release"
     end
   end
