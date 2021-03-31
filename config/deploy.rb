@@ -11,20 +11,21 @@ set :repo_url, "git@github.com:kelynch/openpublishing.git"
 set :deploy_to, "/var/www/openpublishing"
 set :shared_path, "/var/local"
 
+set :ojs_root, "#{fetch(:deploy_to)}/html"
+set :ojs_version_no, "3.3.0-4" #TODO make this a variable
+set :ojs_version, "ojs-#{fetch(:ojs_version_no)}"
+
 set :user, "deploy"
 
 namespace :ojs do
 
-  set :ojs_version_no, "3.3.0-4" #TODO make this a variable
-  set :ojs_version, "ojs-#{fetch(:ojs_version_no)}"
   set :ojs_tar_file, "#{fetch(:ojs_version)}.tar"
   set :download_url, "http://pkp.sfu.ca/ojs/download/#{fetch(:ojs_tar_file)}.gz"
 
-  set :ojs_root, "#{fetch(:deploy_to)}/html"
   set :ojs_file_uploads, File.join(fetch(:shared_path), 'files')
 
   desc "Download and unzip OJS version"
-  task :setup do
+  task :download_ojs do
     on roles :app do
       unless test("[ -d #{File.join(fetch(:ojs_root))} ]")
         execute :mkdir, fetch(:ojs_root)
@@ -55,22 +56,22 @@ namespace :ojs do
     end
   end
 
-  desc "Link shared OJS files"
-  task :link_config do
-    on roles(:app) do |host|
-      execute "cd #{fetch(:ojs_root)}/#{fetch(:ojs_version)} && ln -sf #{fetch(:shared_path)}/config.inc.php config.inc.php"
-      info "linked config inc PHP file to current release"
-    end
-  end
-
 end
 
-namespace :deploy do
-
+namespace :setup do
   desc "Set file system directories and linked files"
-  task :after_deploy_check do
+  task :deployment do
     invoke "ojs:prepare_shared_paths"
-    invoke "ojs:link_config"
+    invoke "ojs:download_ojs"
   end
+end
 
+namespace :update do
+  desc "Update themes from pulibrary/openpublishing"
+  task :themes do
+    invoke "deploy"
+    on roles (:app) do
+      execute :cp, '-a', "#{fetch(:deploy_to)}/current/plugins/themes/.", "#{fetch(:ojs_root)}/#{fetch(:ojs_version)}/plugins/themes/"
+    end
+  end
 end

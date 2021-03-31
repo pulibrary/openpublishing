@@ -1,0 +1,11 @@
+{
+	"private": true,
+	"devDependencies": {
+		"bootstrap": "^4.5.0",
+		"gulp": "^4.0.0",
+		"jquery": "^3.5.1",
+		"jquery-ui-dist": "^1.12.1",
+		"popper.js": "^1.16.0",
+		"tag-it": "^2.0.0"
+	}
+}
