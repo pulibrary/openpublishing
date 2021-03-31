@@ -2,7 +2,7 @@
 lock "~> 3.16.0"
 
 set :application, "openpublishing"
-set :repo_url, "git@github.com:pulibrary/openpublishing.git"
+set :repo_url, "git@github.com:kelynch/openpublishing.git"
 
 # Default branch is :master
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
