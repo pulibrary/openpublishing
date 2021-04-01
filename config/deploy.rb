@@ -29,16 +29,28 @@ namespace :ojs do
       unless test("[ -d #{File.join(fetch(:ojs_root))} ]")
         execute :mkdir, fetch(:ojs_root)
       end
-
       within fetch(:deploy_to) do
         execute :wget, fetch(:download_url)
         execute :gunzip, "#{fetch(:ojs_tar_file)}.gz"
         execute :tar, "-xvf #{fetch(:ojs_tar_file)}"
-        set :expanded_tar_dir, "#{fetch(:deploy_to)}/#{fetch(:ojs_version)}"
+        set :expanded_tar_dir, "#{fetch(:ojs_version)}"
         execute :mv, "#{fetch(:expanded_tar_dir)} #{fetch(:ojs_root)}"
         execute :rm, "#{fetch(:ojs_tar_file)}"
       end
 
+    end
+  end
+
+  desc "Update file and folder permissions for production"
+  task :set_permissions do
+    on release_roles :app do
+      execute "chmod 765 #{fetch(:ojs_root)}/#{fetch(:ojs_version)}/config.inc.php"
+      execute "chmod 765 #{fetch(:ojs_root)}/#{fetch(:ojs_version)}/public"
+      execute "chmod 765 #{fetch(:ojs_root)}/#{fetch(:ojs_version)}/cache"
+      execute "chmod 765 #{fetch(:ojs_root)}/#{fetch(:ojs_version)}/cache/t_cache"
+      execute "chmod 765 #{fetch(:ojs_root)}/#{fetch(:ojs_version)}/cache/t_config"
+      execute "chmod 765 #{fetch(:ojs_root)}/#{fetch(:ojs_version)}/cache/t_compile"
+      execute "chmod 765 #{fetch(:ojs_root)}/#{fetch(:ojs_version)}/cache/_db"
     end
   end
 
@@ -50,7 +62,6 @@ namespace :ojs do
       end
       execute :mkdir, '-p', fetch(:ojs_file_uploads)
       execute :chmod,  " -R 775 #{fetch(:ojs_file_uploads)}"
-
       info "Created file uploads directory link"
     end
   end
@@ -62,6 +73,7 @@ namespace :setup do
   task :filesystem do
     invoke "ojs:prepare_shared_paths"
     invoke "ojs:download_ojs"
+    invoke "ojs:set_permissions"
   end
 end
 
