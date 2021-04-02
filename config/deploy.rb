@@ -29,14 +29,12 @@ namespace :ojs do
       unless test("[ -d #{File.join(fetch(:ojs_root))} ]")
         execute :mkdir, fetch(:ojs_root)
       end
-      within fetch(:deploy_to) do
-        execute :wget, fetch(:download_url)
-        execute :gunzip, "#{fetch(:ojs_tar_file)}.gz"
-        execute :tar, "-xvf #{fetch(:ojs_tar_file)}"
-        set :expanded_tar_dir, "#{fetch(:ojs_version)}"
-        execute :mv, "#{fetch(:expanded_tar_dir)} #{fetch(:ojs_root)}"
-        execute :rm, "#{fetch(:ojs_tar_file)}"
-      end
+      execute :wget, fetch(:download_url)
+      execute :gunzip, "#{fetch(:ojs_tar_file)}.gz"
+      execute :tar, "-xvf #{fetch(:ojs_tar_file)}"
+      set :expanded_tar_dir, "#{fetch(:ojs_version)}"
+      execute :mv, "#{fetch(:expanded_tar_dir)} #{fetch(:ojs_root)}"
+      execute :rm, "#{fetch(:ojs_tar_file)}"
 
     end
   end
