@@ -6,49 +6,39 @@ set :repo_url, "git@github.com:kelynch/openpublishing.git"
 
 set :branch, ENV['BRANCH'] if ENV['BRANCH']
 
-# Default deploy_to directory is /var/www/my_app_name
 set :deploy_to, "/var/www/openpublishing"
+
+# Path for file uploads associated with OJS installation - from install instructions "It is strongly recommended that this directory be placed in a non-web-accessible location to ensure a secure environment (or otherwise protected from direct access, such as via .htaccess rules)"
 set :shared_path, "/var/local"
 
 set :ojs_root, "#{fetch(:deploy_to)}/html"
-set :ojs_version_no, "3.3.0-4" #TODO make this a variable
-set :ojs_version, "ojs-#{fetch(:ojs_version_no)}"
 
 set :user, "deploy"
 
 namespace :ojs do
 
-  set :ojs_tar_file, "#{fetch(:ojs_version)}.tar"
-  set :download_url, "http://pkp.sfu.ca/ojs/download/#{fetch(:ojs_tar_file)}.gz"
-
   set :ojs_file_uploads, File.join(fetch(:shared_path), 'files')
+  set :ojs_prod_version, "3.3.0-4"
 
   desc "Download and unzip OJS version"
-  task :download_ojs do
+  task :download_and_setup do
     on roles :app do
       unless test("[ -d #{File.join(fetch(:ojs_root))} ]")
         execute :mkdir, fetch(:ojs_root)
       end
-      execute :wget, fetch(:download_url)
-      execute :gunzip, "#{fetch(:ojs_tar_file)}.gz"
-      execute :tar, "-xvf #{fetch(:ojs_tar_file)}"
-      set :expanded_tar_dir, "#{fetch(:ojs_version)}"
-      execute :mv, "#{fetch(:expanded_tar_dir)} #{fetch(:ojs_root)}"
-      execute :rm, "#{fetch(:ojs_tar_file)}"
 
-    end
-  end
+      # Initial download and setup of OJS
+      download_ojs(fetch(:ojs_prod_version), fetch(:ojs_root))
+      execute :ln, "-sfn", "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}", "#{fetch(:ojs_root)}/ojs"
 
-  desc "Update file and folder permissions for production"
-  task :set_permissions do
-    on release_roles :app do
-      execute "chmod 765 #{fetch(:ojs_root)}/#{fetch(:ojs_version)}/config.inc.php"
-      execute "chmod 765 #{fetch(:ojs_root)}/#{fetch(:ojs_version)}/public"
-      execute "chmod 765 #{fetch(:ojs_root)}/#{fetch(:ojs_version)}/cache"
-      execute "chmod 765 #{fetch(:ojs_root)}/#{fetch(:ojs_version)}/cache/t_cache"
-      execute "chmod 765 #{fetch(:ojs_root)}/#{fetch(:ojs_version)}/cache/t_config"
-      execute "chmod 765 #{fetch(:ojs_root)}/#{fetch(:ojs_version)}/cache/t_compile"
-      execute "chmod 765 #{fetch(:ojs_root)}/#{fetch(:ojs_version)}/cache/_db"
+      # Update filesystem permissions according to OJS install instructions - https://openjournalsystems.com/ojs-3-user-guide/installation/
+      execute "chmod 765 #{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}/config.inc.php"
+      execute "chmod 765 #{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}/public"
+      execute "chmod 765 #{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}/cache"
+      execute "chmod 765 #{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}/cache/t_cache"
+      execute "chmod 765 #{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}/cache/t_config"
+      execute "chmod 765 #{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}/cache/t_compile"
+      execute "chmod 765 #{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}/cache/_db"
     end
   end
 
@@ -58,6 +48,8 @@ namespace :ojs do
       unless test("[ -d #{File.join(fetch(:ojs_file_uploads))} ]")
         execute :mkdir, fetch(:ojs_file_uploads)
       end
+
+      # Create shared filesystem path for uploads
       execute :mkdir, '-p', fetch(:ojs_file_uploads)
       execute :chmod,  " -R 775 #{fetch(:ojs_file_uploads)}"
       info "Created file uploads directory link"
@@ -70,8 +62,7 @@ namespace :setup do
   desc "Set file system directories and linked files"
   task :filesystem do
     invoke "ojs:prepare_shared_paths"
-    invoke "ojs:download_ojs"
-    invoke "ojs:set_permissions"
+    invoke "ojs:download_and_setup"
   end
 end
 
@@ -80,7 +71,43 @@ namespace :deploy do
   task :themes do
     on roles (:app) do
       invoke "deploy"
-      execute :cp, '-a', "#{fetch(:deploy_to)}/current/plugins/themes/.", "#{fetch(:ojs_root)}/#{fetch(:ojs_version)}/plugins/themes/"
+      execute :cp, '-a', "#{fetch(:deploy_to)}/current/plugins/themes/.", "#{fetch(:ojs_root)}/ojs/plugins/themes/"
+    end
+  end
+end
+
+namespace :upgrade do
+
+  set :ojs_upgrade_version, "3.3.0-4"
+
+  desc "Upgrade OJS"
+  task :ojs do
+    on roles(:app) do
+
+      error "Upgrade version (#{fetch(:ojs_upgrade_version)}) lower than or same as current production version (#{fetch(:ojs_prod_version)})"; break if fetch(:ojs_upgrade_version) <= fetch(:ojs_prod_version)
+
+      invoke "deploy"
+
+      unless test("[ -d #{File.join("#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}-backup/")} ]")
+        execute :mkdir, "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}-backup/"
+      end
+
+      unless test("[ -d #{File.join("#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_upgrade_version)}-hold/")} ]")
+        execute :mkdir, "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_upgrade_version)}-hold/"
+      end
+
+      download_ojs(fetch(:ojs_upgrade_version), fetch(:ojs_root))
+
+      # Make a copy of the upgrade config file
+      execute :cp, "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_upgrade_version)}/config.inc.php", "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_upgrade_version)}-hold/"
+
+      # Move config and public files out of the current install
+      execute :cp, "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}/config.inc.php", "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}-backup/"
+      execute :cp, "-R", "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}/public", "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}-backup/"
+
+      # Point OJS to the new version
+      execute :ln, "-sfn", "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_upgrade_version)}", "#{fetch(:ojs_root)}/ojs"
+
     end
   end
 end

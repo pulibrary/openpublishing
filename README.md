@@ -30,3 +30,9 @@ OJS instance for Princeton Open Access Publishing Platform
   ```bash
   cap staging deploy:themes BRANCH=3-capistrano_deploy
   ```
+
+1. To upgrade the core OJS software:
+  ```bash
+  cap staging upgrade:ojs # run non-database OJS software upgrade tasks
+  cap staging deploy:themes # deploy custom themes to the upgraded software
+  ```
