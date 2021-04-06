@@ -13,3 +13,26 @@ OJS instance for Princeton Open Access Publishing Platform
   Lando will start two docker containers: one with a PostgreSQL database and one with a PHP enabled web server. `lando info` will print out `APPSERVER URLS` that can be used to access the website. The will look something like `http://localhost:62226` but the port number may change. You should be able to visit that URL in a web browser and see the OJS application.
 
 1. Visit OJS in your browser and login as admin/abc123
+
+## Deploying with Capistrano
+
+1. Clone this repo: `git clone git@github.com:kelynch/openpublishing.git`
+1. `cd openpublishing`
+1. `bundle install`
+1. Run capistrano commands for setup and deployment:
+  ```bash
+  cap staging setup:filesystem
+  cap staging deploy
+  cap staging deploy:themes # deploy updated custom themes
+  ```
+  OPTIONAL: Supply a branch name as a command-line parameter, to run Capistrano commands on a specific branch on the remote, example:
+
+  ```bash
+  cap staging deploy:themes BRANCH=3-capistrano_deploy
+  ```
+
+1. To upgrade the core OJS software:
+  ```bash
+  cap staging upgrade:ojs # run non-database OJS software upgrade tasks
+  cap staging deploy:themes # deploy custom themes to the upgraded software
+  ```
