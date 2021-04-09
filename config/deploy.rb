@@ -72,6 +72,7 @@ namespace :deploy do
     on roles (:app) do
       invoke "deploy"
       execute :cp, '-a', "#{fetch(:deploy_to)}/current/plugins/themes/.", "#{fetch(:ojs_root)}/ojs/plugins/themes/"
+      execute "sudo chown -R www-data:deploy #{fetch(:ojs_root)}"
     end
   end
 end
@@ -89,6 +90,7 @@ namespace :upgrade do
       invoke "deploy"
 
       unless test("[ -d #{File.join("#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}-backup/")} ]")
+        execute "sudo chown -R deploy:deploy #{fetch(:ojs_root)}"
         execute :mkdir, "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}-backup/"
       end
 
@@ -107,6 +109,7 @@ namespace :upgrade do
 
       # Point OJS to the new version
       execute :ln, "-sfn", "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_upgrade_version)}", "#{fetch(:ojs_root)}/ojs"
+      execute "sudo chown -R www-data:deploy #{fetch(:ojs_root)}"
 
     end
   end
