@@ -2,14 +2,14 @@
 lock "~> 3.16.0"
 
 set :application, "openpublishing"
-set :repo_url, "git@github.com:kelynch/openpublishing.git"
+set :repo_url, "git@github.com:pulibrary/openpublishing.git"
 
 set :branch, ENV['BRANCH'] if ENV['BRANCH']
 
-set :deploy_to, "/var/www/openpublishing"
+set :deploy_to, "/home/deploy/ojs"
 
 # Path for file uploads associated with OJS installation - from install instructions "It is strongly recommended that this directory be placed in a non-web-accessible location to ensure a secure environment (or otherwise protected from direct access, such as via .htaccess rules)"
-set :shared_path, "/var/local"
+set :shared_path, "/home/deploy/ojs/local"
 
 set :ojs_root, "#{fetch(:deploy_to)}/html"
 
@@ -72,6 +72,7 @@ namespace :deploy do
     on roles (:app) do
       invoke "deploy"
       execute :cp, '-a', "#{fetch(:deploy_to)}/current/plugins/themes/.", "#{fetch(:ojs_root)}/ojs/plugins/themes/"
+      execute "sudo chown -R www-data:deploy #{fetch(:ojs_root)}"
     end
   end
 end
@@ -89,6 +90,7 @@ namespace :upgrade do
       invoke "deploy"
 
       unless test("[ -d #{File.join("#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}-backup/")} ]")
+        execute "sudo chown -R deploy:deploy #{fetch(:ojs_root)}"
         execute :mkdir, "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}-backup/"
       end
 
@@ -107,6 +109,7 @@ namespace :upgrade do
 
       # Point OJS to the new version
       execute :ln, "-sfn", "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_upgrade_version)}", "#{fetch(:ojs_root)}/ojs"
+      execute "sudo chown -R www-data:deploy #{fetch(:ojs_root)}"
 
     end
   end
