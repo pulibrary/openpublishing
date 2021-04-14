@@ -15,6 +15,8 @@ set :ojs_root, "#{fetch(:deploy_to)}/html"
 
 set :user, "deploy"
 
+after :deploy, "cp #{fetch(:deploy_to)}/config.inc.php #{fetch(:deploy_to)}/html/ojs/"
+
 namespace :ojs do
 
   set :ojs_file_uploads, File.join(fetch(:shared_path), 'files')
@@ -52,6 +54,7 @@ namespace :ojs do
       # Create shared filesystem path for uploads
       execute :mkdir, '-p', fetch(:ojs_file_uploads)
       execute :chmod,  " -R 775 #{fetch(:ojs_file_uploads)}"
+      execute "sudo chown -R www-data:deploy #{fetch(:ojs_file_uploads)}"
       info "Created file uploads directory link"
     end
   end
