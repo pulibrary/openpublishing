@@ -2,7 +2,7 @@
 lock "~> 3.16.0"
 
 set :application, "openpublishing"
-set :repo_url, "git@github.com:pulibrary/openpublishing.git"
+set :repo_url, "https://github.com/pulibrary/openpublishing.git"
 
 set :branch, ENV['BRANCH'] if ENV['BRANCH']
 
@@ -15,7 +15,7 @@ set :ojs_root, "#{fetch(:deploy_to)}/html"
 
 set :user, "deploy"
 
-after :deploy, "cp #{fetch(:deploy_to)}/config.inc.php #{fetch(:deploy_to)}/html/ojs/"
+after :deploy, "ojs:copy_ojs_config"
 
 namespace :ojs do
 
