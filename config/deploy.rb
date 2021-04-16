@@ -83,7 +83,7 @@ namespace :deploy do
   task :themes do
     on roles (:app) do
       invoke "deploy"
-      execute :cp, '-a', "#{fetch(:deploy_to)}/current/plugins/themes/.", "#{fetch(:ojs_root)}/ojs/plugins/themes/"
+      execute :cp, '-rf', "#{fetch(:deploy_to)}/current/plugins/themes/*", "#{fetch(:ojs_root)}/ojs/plugins/themes/"
       execute "sudo chown -R www-data:deploy #{fetch(:ojs_root)}"
     end
   end
