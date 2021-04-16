@@ -60,3 +60,5 @@ files/**
 log/*.log
 log/*.log*
 config/ojs_config.yml
+
+ojs-*

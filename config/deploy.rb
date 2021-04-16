@@ -2,7 +2,7 @@
 lock "~> 3.16.0"
 
 set :application, "openpublishing"
-set :repo_url, "git@github.com:pulibrary/openpublishing.git"
+set :repo_url, "https://github.com/pulibrary/openpublishing.git"
 
 set :branch, ENV['BRANCH'] if ENV['BRANCH']
 
@@ -15,10 +15,21 @@ set :ojs_root, "#{fetch(:deploy_to)}/html"
 
 set :user, "deploy"
 
+after :deploy, "ojs:copy_ojs_config"
+
 namespace :ojs do
 
   set :ojs_file_uploads, File.join(fetch(:shared_path), 'files')
   set :ojs_prod_version, "3.3.0-4"
+
+  desc "Copy ojs config file into place"
+  task :copy_ojs_config do
+    on roles :app do
+      execute "ln -sfn #{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)} #{fetch(:ojs_root)}/ojs"
+      execute :cp, '-af', "#{fetch(:deploy_to)}/config.inc.php", "#{fetch(:deploy_to)}/html/ojs/"
+      execute "sudo chown -R www-data:deploy #{fetch(:deploy_to)}/html/ojs/config.inc.php"
+    end
+  end
 
   desc "Download and unzip OJS version"
   task :download_and_setup do
@@ -52,6 +63,7 @@ namespace :ojs do
       # Create shared filesystem path for uploads
       execute :mkdir, '-p', fetch(:ojs_file_uploads)
       execute :chmod,  " -R 775 #{fetch(:ojs_file_uploads)}"
+      execute "sudo chown -R www-data:deploy #{fetch(:ojs_file_uploads)}"
       info "Created file uploads directory link"
     end
   end
