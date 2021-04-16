@@ -20,6 +20,15 @@ namespace :ojs do
   set :ojs_file_uploads, File.join(fetch(:shared_path), 'files')
   set :ojs_prod_version, "3.3.0-4"
 
+  desc "Copy ojs config file into place"
+  task :copy_ojs_config do
+    on roles :app do
+      execute "ln -sfn #{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)} #{fetch(:ojs_root)}/ojs"
+      execute :cp, '-af', "#{fetch(:deploy_to)}/config.inc.php", "#{fetch(:deploy_to)}/html/ojs/"
+      execute "sudo chown -R www-data:deploy #{fetch(:deploy_to)}/html/ojs/config.inc.php"
+    end
+  end
+
   desc "Download and unzip OJS version"
   task :download_and_setup do
     on roles :app do
