@@ -1,3 +1,3 @@
 set :branch, ENV["BRANCH"] || "main"
 
-server "openpublishing-prod", user: fetch(:user), roles: %w{app}
+server "ojs-prod1", roles: %w{app}
