@@ -1,28 +1,27 @@
 # config valid for current version and patch releases of Capistrano
-lock "~> 3.16.0"
+lock '~> 3.16.0'
 
-set :application, "openpublishing"
-set :repo_url, "https://github.com/pulibrary/openpublishing.git"
+set :application, 'openpublishing'
+set :repo_url, 'https://github.com/pulibrary/openpublishing.git'
 
 set :branch, ENV['BRANCH'] if ENV['BRANCH']
 
-set :deploy_to, "/home/deploy/ojs"
+set :deploy_to, '/home/deploy/ojs'
 
 # Path for file uploads associated with OJS installation - from install instructions "It is strongly recommended that this directory be placed in a non-web-accessible location to ensure a secure environment (or otherwise protected from direct access, such as via .htaccess rules)"
-set :shared_path, "/home/deploy/ojs/local"
+set :shared_path, '/home/deploy/ojs/local'
 
 set :ojs_root, "#{fetch(:deploy_to)}/html"
 
-set :user, "deploy"
+set :user, 'deploy'
 
-after :deploy, "ojs:copy_ojs_config"
+after :deploy, 'ojs:copy_ojs_config'
 
 namespace :ojs do
-
   set :ojs_file_uploads, File.join(fetch(:shared_path), 'files')
-  set :ojs_prod_version, "3.3.0-4"
+  set :ojs_prod_version, '3.3.0-4'
 
-  desc "Copy ojs config file into place"
+  desc 'Copy ojs config file into place'
   task :copy_ojs_config do
     on roles :app do
       execute "ln -sfn #{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)} #{fetch(:ojs_root)}/ojs"
@@ -31,16 +30,14 @@ namespace :ojs do
     end
   end
 
-  desc "Download and unzip OJS version"
+  desc 'Download and unzip OJS version'
   task :download_and_setup do
     on roles :app do
-      unless test("[ -d #{File.join(fetch(:ojs_root))} ]")
-        execute :mkdir, fetch(:ojs_root)
-      end
+      execute :mkdir, fetch(:ojs_root) unless test("[ -d #{File.join(fetch(:ojs_root))} ]")
 
       # Initial download and setup of OJS
       download_ojs(fetch(:ojs_prod_version), fetch(:ojs_root))
-      execute :ln, "-sfn", "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}", "#{fetch(:ojs_root)}/ojs"
+      execute :ln, '-sfn', "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}", "#{fetch(:ojs_root)}/ojs"
 
       # Update filesystem permissions according to OJS install instructions - https://openjournalsystems.com/ojs-3-user-guide/installation/
       execute "chmod 765 #{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}/config.inc.php"
@@ -53,36 +50,33 @@ namespace :ojs do
     end
   end
 
-  desc "Create shared files directory"
+  desc 'Create shared files directory'
   task :prepare_shared_paths do
     on release_roles :app do
-      unless test("[ -d #{File.join(fetch(:ojs_file_uploads))} ]")
-        execute :mkdir, fetch(:ojs_file_uploads)
-      end
+      execute :mkdir, fetch(:ojs_file_uploads) unless test("[ -d #{File.join(fetch(:ojs_file_uploads))} ]")
 
       # Create shared filesystem path for uploads
       execute :mkdir, '-p', fetch(:ojs_file_uploads)
-      execute :chmod,  " -R 775 #{fetch(:ojs_file_uploads)}"
+      execute :chmod, " -R 775 #{fetch(:ojs_file_uploads)}"
       execute "sudo chown -R www-data:deploy #{fetch(:ojs_file_uploads)}"
-      info "Created file uploads directory link"
+      info 'Created file uploads directory link'
     end
   end
-
 end
 
 namespace :setup do
-  desc "Set file system directories and linked files"
+  desc 'Set file system directories and linked files'
   task :filesystem do
-    invoke "ojs:prepare_shared_paths"
-    invoke "ojs:download_and_setup"
+    invoke 'ojs:prepare_shared_paths'
+    invoke 'ojs:download_and_setup'
   end
 end
 
 namespace :deploy do
-  desc "Update themes from pulibrary/openpublishing"
+  desc 'Update themes from pulibrary/openpublishing'
   task :themes do
-    on roles (:app) do
-      invoke "deploy"
+    on roles(:app) do
+      invoke 'deploy'
       execute :cp, '-rf', "#{fetch(:deploy_to)}/current/plugins/themes/*", "#{fetch(:ojs_root)}/ojs/plugins/themes/"
       execute "sudo chown -R www-data:deploy #{fetch(:ojs_root)}"
     end
@@ -90,16 +84,15 @@ namespace :deploy do
 end
 
 namespace :upgrade do
+  set :ojs_upgrade_version, '3.3.0-4'
 
-  set :ojs_upgrade_version, "3.3.0-4"
-
-  desc "Upgrade OJS"
+  desc 'Upgrade OJS'
   task :ojs do
     on roles(:app) do
+      error "Upgrade version (#{fetch(:ojs_upgrade_version)}) lower than or same as current production version (#{fetch(:ojs_prod_version)})"
+      break if fetch(:ojs_upgrade_version) <= fetch(:ojs_prod_version)
 
-      error "Upgrade version (#{fetch(:ojs_upgrade_version)}) lower than or same as current production version (#{fetch(:ojs_prod_version)})"; break if fetch(:ojs_upgrade_version) <= fetch(:ojs_prod_version)
-
-      invoke "deploy"
+      invoke 'deploy'
 
       unless test("[ -d #{File.join("#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}-backup/")} ]")
         execute "sudo chown -R deploy:deploy #{fetch(:ojs_root)}"
@@ -113,16 +106,18 @@ namespace :upgrade do
       download_ojs(fetch(:ojs_upgrade_version), fetch(:ojs_root))
 
       # Make a copy of the upgrade config file
-      execute :cp, "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_upgrade_version)}/config.inc.php", "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_upgrade_version)}-hold/"
+      execute :cp, "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_upgrade_version)}/config.inc.php",
+              "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_upgrade_version)}-hold/"
 
       # Move config and public files out of the current install
-      execute :cp, "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}/config.inc.php", "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}-backup/"
-      execute :cp, "-R", "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}/public", "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}-backup/"
+      execute :cp, "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}/config.inc.php",
+              "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}-backup/"
+      execute :cp, '-R', "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}/public",
+              "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)}-backup/"
 
       # Point OJS to the new version
-      execute :ln, "-sfn", "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_upgrade_version)}", "#{fetch(:ojs_root)}/ojs"
+      execute :ln, '-sfn', "#{fetch(:ojs_root)}/ojs-#{fetch(:ojs_upgrade_version)}", "#{fetch(:ojs_root)}/ojs"
       execute "sudo chown -R www-data:deploy #{fetch(:ojs_root)}"
-
     end
   end
 end
