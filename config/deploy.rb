@@ -26,7 +26,9 @@ namespace :ojs do
     on roles :app do
       execute "ln -sfn #{fetch(:ojs_root)}/ojs-#{fetch(:ojs_prod_version)} #{fetch(:ojs_root)}/ojs"
       execute :cp, '-af', "#{fetch(:deploy_to)}/config.inc.php", "#{fetch(:deploy_to)}/html/ojs/"
+      execute :cp, '-af', "#{fetch(:deploy_to)}/.htaccess", "#{fetch(:deploy_to)}/html/ojs/.htaccess"
       execute "sudo chown -R www-data:deploy #{fetch(:deploy_to)}/html/ojs/config.inc.php"
+      execute "sudo chown -R www-data:deploy #{fetch(:deploy_to)}/html/ojs/.htaccess"
     end
   end
 
