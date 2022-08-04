@@ -8,7 +8,7 @@ The staging environment for OJS is regarded as an environment as close to produc
 
 ## Configuration management
 
-OJS's configuration workflows are managed in a web-based admin interface in the software.  These configures are set and maintained by authenticated admin users assigned to the Journal Manager role in OJS.
+OJS's configuration workflows are managed in a web-based admin interface in the software.  These configurations are set and maintained by authenticated admin users assigned to the Journal Manager role in OJS.
 
 Configuration changes include settings entered directly into the OJS admin web forms, files such as images uploaded through theme management, or basically any data or files uploaded through the "Settings" section of OJS.  These are recorded in the environment's database and local file system.
 
