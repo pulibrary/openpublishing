@@ -14,7 +14,7 @@ Configuration changes include settings entered directly into the OJS admin web f
 
 ## Journal articles management
 
-Journal articles are created through the web browser and managed in the same way that site-wide configurations are made.
+Journals and journal articles are created through the web browser and managed in the same way that site-wide configurations are made.
 
 Journal articles are configured in the web browser by admin users with the proper role assigned.  Files such as PDFs that are attached to the article submissions are stored on the environment's local file system.
 
