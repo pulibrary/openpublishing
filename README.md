@@ -23,7 +23,7 @@ OJS instance for Princeton Open Access Publishing Platform
 1. Finally, login with the credentials you provided during installation.
 
 ## PUL OJS instances
-PUL maintains three instances of OJS: ojs-dev, ojs-staging, and ojs-prod. <https://openpublishing.princeton.edu> is an alias for ojs-prod.
+PUL maintains two instances of OJS: ojs-staging, and ojs-prod. <https://openpublishing.princeton.edu> is an alias for ojs-prod.
 
 Server installation follows this recipe:
 1. Create a PUL ubuntu instance
