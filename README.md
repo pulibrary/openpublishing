@@ -23,36 +23,14 @@ OJS instance for Princeton Open Access Publishing Platform
 1. Finally, login with the credentials you provided during installation.
 
 ## PUL OJS instances
-PUL maintains two instances of OJS: ojs-staging, and ojs-prod. <https://openpublishing.princeton.edu> is an alias for ojs-prod.
 
-Server installation follows this recipe:
-1. Create a PUL ubuntu instance
-2. Run an ansible playbook, like [this one](https://github.com/pulibrary/princeton_ansible/blob/main/playbooks/ojs_production.yml) to install PHP, apache, PostgreSQL, and to populate a configuration file that will contain the database credentials OJS needs.
-3. Ensure there is a deploy target for the new environment in this repo, under `config/deploy/$ENV.rb`
-4. Once you have a deploy target, make sure you're on the VPN and you have credentials set up to allow for passwordless ssh connections to the system. Then:
-  1. `cap staging setup:filesystem`
-  2. `cap staging deploy`
-5. At this point OJS will be *almost* configured, but you will need to go to the newly setup instance in a browser and fill in the login and password of the first admin user manually.
-6. Deploy the themes:
-  1. `cap staging deploy:themes`.
+PUL maintains two instances of OJS: ojs-staging, and ojs-prod. <https://openpublishing.princeton.edu> is an alias for ojs-prod.  See [configuration management documentation](/docs/configuration_management.md) for information about how these environments are used.
 
-  Note that there appear to be some bugs in OJS such that themes are not enabled automatically. You may need to manually enable a theme via the OJS UI before it will be accessible. You may need to use the UI to install a new theme before the PUL maintained themes show up in the UI.
+## Deployment
 
-## Deploying an updated theme
-When there have been changes to the PUL maintained theme, deploy them like this:
+OJS deployments are handled in [princeton_ansible](https://github.com/pulibrary/princeton_ansible).  There is currently an [ojs_staging playbook](#) and an [ojs_prod playbook](#).  Points to remember when deploying OJS with ansible:
 
-1. Clone this repo: `git clone git@github.com:pulibrary/openpublishing.git`
-1. `cd openpublishing`
-1. `bundle install`
-1. Run capistrano commands for setup and deployment:
-  ```bash
-  cap staging deploy:themes # deploy updated custom themes
-  ```
-  OPTIONAL: Supply a branch name as a command-line parameter, to run Capistrano commands on a specific branch on the remote, example:
-
-  ```bash
-  cap staging deploy:themes BRANCH=3-capistrano_deploy
-  ```
-
-## To upgrade the core OJS software:
-TBD
+* The OJS core code base is downloaded from [the PKP OJS .tar.gz downloads](https://pkp.sfu.ca/ojs/ojs_download/).  The software version number is defined in ansible.
+* Some core files are maintained in the PKP OJS repository as git submodules, and therefore do not automatically ship with OJS downloads from source.  [This is an example of our recommendated approach for pulling in submodule code](https://github.com/pulibrary/princeton_ansible/blob/main/roles/ojs/tasks/main.yml#L182).
+* The healthSciences theme is downloaded from the [healthSciences theme PKP GitHub repository](https://github.com/pkp/healthSciences/).
+* Custom CSS used with OJS themes are maintained in the [ojs_styles repository](https://github.com/pulibrary/ojs_styles).  These stylesheets are uploaded directly to OJS via the admin web UI (see the [ojs_styles README](https://github.com/pulibrary/ojs_styles#readme) for instructions).
