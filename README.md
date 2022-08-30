@@ -28,7 +28,7 @@ PUL maintains two instances of OJS: ojs-staging, and ojs-prod. <https://openpubl
 
 ## Deployment
 
-OJS deployments are handled in [princeton_ansible](https://github.com/pulibrary/princeton_ansible).  There is currently an [ojs_staging playbook](#) and an [ojs_prod playbook](#).  Points to remember when deploying OJS with ansible:
+OJS deployments are handled in [princeton_ansible](https://github.com/pulibrary/princeton_ansible).  There is currently an [ojs_staging playbook](https://github.com/pulibrary/princeton_ansible/blob/main/playbooks/ojs_staging.yml) and an [ojs_prod playbook](https://github.com/pulibrary/princeton_ansible/blob/main/playbooks/ojs_production.yml).  Points to remember when deploying OJS with ansible:
 
 * The OJS core code base is downloaded from [the PKP OJS .tar.gz downloads](https://pkp.sfu.ca/ojs/ojs_download/).  The software version number is defined in ansible.
 * Some core files are maintained in the PKP OJS repository as git submodules, and therefore do not automatically ship with OJS downloads from source.  [This is an example of our recommendated approach for pulling in submodule code](https://github.com/pulibrary/princeton_ansible/blob/main/roles/ojs/tasks/main.yml#L182).
