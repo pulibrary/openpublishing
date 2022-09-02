@@ -1,4 +1,0 @@
-staging:
-  application: app_name
-production:
-  application: app_name
