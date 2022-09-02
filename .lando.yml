@@ -1,6 +1,0 @@
----
-name: openpublishing
-recipe: lamp
-config:
-  database: postgres
-  webroot: ./ojs
